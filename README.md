@@ -3,4 +3,5 @@
     conda activate pai_lib
 # Algorithm
 
-![pai_code](https://github.com/user-attachments/assets/ada59bbb-5862-4c6d-8460-59394e07d85b)
+![pail_algo](https://github.com/user-attachments/assets/36159044-2517-4857-a65e-604d0da0f562)
+
