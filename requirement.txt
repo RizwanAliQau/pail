@@ -1,7 +1,7 @@
 torchvision==0.18.1
 albumentations==1.4.11
-numpy==1.26.4
-scipy==1.14.0
+numpy==1.24.4
+scipy==1.10.1
 opencv-python==4.10.0.84
 patchify==0.2.3
 pillow==10.2.0

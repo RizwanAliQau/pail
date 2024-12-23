@@ -781,7 +781,7 @@ if __name__=="__main__":
     try: anom_source_paths            =    [os.path.join(anom_sourc_files,file) for file in  os.listdir(anom_sourc_files)]
     except Exception as e: print("Anom Source Data does not Exist")
             
-    for normal_img in range(100000):
+    for normal_img in range(1):
         for normal_img in normal_img_paths:
             hight            =   256
             width            =   256
