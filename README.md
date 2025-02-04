@@ -21,6 +21,11 @@ This framework provides a robust solution for anomaly detection and segmentation
 
 ---
 # Installation
+## Docker Env
+```
+    docker build -t pail_test .
+    docker run -it -d pail_test
+```
 ## create conda environment
 ```
     conda create -n pai_lib --file requirement.txt
