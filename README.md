@@ -57,7 +57,7 @@ This framework provides a robust solution for anomaly detection and segmentation
         normal_image        =  cv2.resize(normal_image, (width, width))
     except Exception as e: 
         print("Normal Image data does not Exist so initialize with zeros image")
-        normal_image        =  np.zeros((256,256,3),dtype=np.uint8)
+        normal_image        =  np.ones((256,256,3),dtype=np.uint8)
 
     anom_insertion  =    pai.Anomaly_Insertion() 
 ``` 
