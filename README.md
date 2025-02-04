@@ -56,71 +56,73 @@ This framework provides a robust solution for anomaly detection and segmentation
 
     anom_insertion  =    pai.Anomaly_Insertion() 
 ``` 
-##  **Source Free Methods** 
-### 1. Cut-Paste scar Example 
+##  **Source Free Methods (SFI)** 
+### - Cut-Paste scar Example 
 ### CutPaste: Self-Supervised Learning for Anomaly Detection and Localization
 ### https://arxiv.org/pdf/2104.04015.pdf
 ```python
     aug_img,msk     =    anom_insertion.cutpaste_scar(normal_image) 
 ```
-### 2. Simplex noise Anomaly Example 
+### - Simplex noise Anomaly Example 
 ### Revisiting Reverse Distillation for Anomaly Detection) 
 ### https://openaccess.thecvf.com/content/CVPR2023/papers/Tien_Revisiting_Reverse_Distillation_for_Anomaly_Detection_CVPR_2023_paper.pdf
 ```python    
     aug_img,msk     =    anom_insertion.simplex_noise_anomlay(normal_image)
 ```
-### 3. Random Perturbation Example 
+### - Random Perturbation Example 
 ### Collaborative Discrepancy Optimization for Reliable Image Anomaly Localization) 
 ### https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10034849 ########################
 ```python    
     aug_img,msk     =    anom_insertion.random_perturbation(normal_image)
 ```    
-### 4. hard_aug_cutpaste 
+### - Hard Augment CutPaste 
 ### ANOSEG: ANOMALY SEGMENTATION NETWORK USING SELF-SUPERVISED LEARNING)     
 ### https://openreview.net/pdf?id=35-QqyfmjfP 
 ```python   
    aug_img,msk     =    anom_insertion.hard_aug_cutpaste(normal_image)
 ```
-### 5. Cut and Paste Example 
+### - Cut and Paste Example 
 ### CutPaste: Self-Supervised Learning for Anomaly Detection and Localization
 ### https://arxiv.org/pdf/2104.04015.pdf 
 ```python    
     aug_img,msk    =    anom_insertion.cutpaste(normal_image)
 ```
 
-## **Source based Methods** 
+## **Source based Methods (SBI)** 
 
-### 6. Perlin Noise Example ######################################
+### - Perlin Noise Example
 ### DRÆM – A discriminatively trained reconstruction embedding for surface anomaly detection 
-### https://arxiv.org/pdf/2108.07610.pdf ##########################################
+### https://arxiv.org/pdf/2108.07610.pdf
 ```ruby
     aug_img,msk    =    anom_insertion.perlin_noise_pattern(normal_image, anom_source_img=anom_source_img_pil)
 ```
-### 7. Superpixel Anomaly Example 
-### (Two-Stage Coarse-to-Fine Image Anomaly Segmentation and Detection Model) 
+### - Superpixel Anomaly Example 
+### Two-Stage Coarse-to-Fine Image Anomaly Segmentation and Detection Model 
 ### https://www.sciencedirect.com/science/article/abs/pii/S0262885623001919
 ```ruby
     aug_img,msk    =    anom_insertion.superpixel_anomaly(normal_image, anom_source_img=anom_source_img_pil)
 ```
-### 8.  Perlin ROI Anomaly Example 
+### - Perlin ROI Anomaly Example 
 ### MemSeg: A semi-supervised method for image surface defect detection using differences and commonalities 
-### https://arxiv.org/pdf/2205.00908.pdf ##########################################
+### https://arxiv.org/pdf/2205.00908.pdf 
 ```ruby
     aug_img,msk    =    anom_insertion.perlin_with_roi_anomaly(normal_image,anom_source_img=anom_source_img_pil)
 ```    
-### 9.  random augmented CutPaste Anomaly Example (Explicit Boundary Guided Semi-Push-Pull Contrastive Learning for Supervised Anomaly Detection ### 
-### https://arxiv.org/pdf/2207.01463.pdf ##########################################
+### - Random Augmented CutPaste Anomaly Example 
+### Explicit Boundary Guided Semi-Push-Pull Contrastive Learning for Supervised Anomaly Detection
+### https://arxiv.org/pdf/2207.01463.pdf 
 ```ruby
     aug_img,msk    =    anom_insertion.rand_augmented_cut_paste(normal_image,  anom_source_img=anom_source_img_pil)
 ```
-### 10. fractal anomaly generation (FAG) Example ########################
+### - Fractal Anomaly Generation (FAG) Example
 ### FRACTALAD: A SIMPLE INDUSTRIAL ANOMALY DETECTION METHOD USING FRACTAL ANOMALY GENERATION AND BACKBONE KNOWLEDGE DISTILLATION 
-### https://arxiv.org/pdf/2301.12739.pdf #######################################
+### https://arxiv.org/pdf/2301.12739.pdf 
 ```ruby
     aug_img,msk    =    anom_insertion.fract_aug(normal_image, anom_source_img=anom_source_img_pil)
 ```
-### 11. Affined Anomalay 
-```ruby
+## Hybrid: SFI And SBI 
+### - Affined Anomalay 
+```sql
     aug_anom,msk   =    anom_insertion.affined_anomlay(normal_image)
 ```
 ---
