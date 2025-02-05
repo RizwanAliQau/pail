@@ -3,7 +3,9 @@ from patchify import patchify, unpatchify
 import numpy as np 
 import cv2
 import imgaug.augmenters as iaa
-
+from PIL import Image, ImageDraw, ImageFilter
+import random
+from skimage.metrics import structural_similarity as ssim
 def patches_extrac_patches_to_img(img_norm, patch_size=32):
         #no_of_patches           =   320
     #patch_size              =   int(((img_norm.shape[0]*img_norm.shape[0])/no_of_patches)**(1/2))
@@ -91,12 +93,12 @@ def affine_transform_anomaly(normal_patch, normal_img_patches, anom_patches=None
 
     choice_of_patch         =   np.random.choice(normal_img_patches.shape[0],1)[0]
     normal_patch_shuf       =   np.copy((normal_img_patches[choice_of_patch, :,:,:]))
-    if anom_patches is not None:
-        anom_source_patch       =   anom_patches #np.copy((anom_patches[choice_of_patch, :,:,:]))
-        choice_of_affine_patch  =   np.random.choice([0,1,2], 1)[0]
-    else:
-        choice_of_affine_patch  =   np.random.choice([0], 1)[0]
-    
+    # if anom_patches is not None:
+    #     anom_source_patch       =   anom_patches #np.copy((anom_patches[choice_of_patch, :,:,:]))
+    #     choice_of_affine_patch  =   np.random.choice([0,1,2], 1)[0]
+    # else:
+    #     choice_of_affine_patch  =   np.random.choice([0,1], 1)[0]
+    choice_of_affine_patch  =   np.random.choice([0,1], 1)[0]
     if choice_of_affine_patch==0:
         #normal_patch_preprocess, _  =   self.img_aug_anomaly(normal_patch)  
         dst     = cv2.warpAffine(normal_patch_aug,M,(cols,rows))
@@ -116,9 +118,13 @@ def affine_transform_anomaly(normal_patch, normal_img_patches, anom_patches=None
         dst     = cv2.warpAffine(anom_source_patch,M,(cols,rows))
 
     msk     = np.expand_dims((dst>0).astype(np.float32)[:,:,0], axis=2)
-
-    augmented_image         =       ((msk * dst) + ((1-msk)*normal_patch)).astype(np.float32)
+    if True: #ssim(dst, (msk*normal_patch),channel_axis=2,data_range=255)<=0.75:
+        augmented_image         =       ((msk * dst) + ((1-msk)*normal_patch)).astype(np.float32)
     
+    else:
+        augmented_image         =       normal_patch 
+        msk                     =       np.zeros_like(msk)
+        
     return augmented_image, msk
 
 def color_anom_source(anom_source_img):
@@ -133,3 +139,147 @@ def color_anom_source(anom_source_img):
     
     anom_source_img  = Image.fromarray(anom_source_img)
     return anom_source_img
+
+
+def apply_opacity(image):
+    # Open the image and convert it to RGBA
+    image = Image.fromarray(image).convert("RGBA")
+
+    # Convert image to a NumPy array
+    data = np.array(image)
+
+    # Generate a random opacity (alpha) layer
+    random_opacity = np.random.randint(0, 256, (data.shape[0], data.shape[1]), dtype=np.uint8)
+
+    # Replace the alpha channel with the random opacity layer
+    data[..., 3] = random_opacity
+
+    # Convert back to an image
+    random_opacity_image = Image.fromarray(data, 'RGBA')
+    # Drop the alpha channel
+    rgb_image = np.asarray(random_opacity_image)[..., :3]
+    alpha_channel = np.asarray(random_opacity_image)[..., 3]
+    opac_img  = rgb_image*(np.expand_dims(alpha_channel,axis=-1)/255)
+    return (opac_img).astype(np.uint8)
+
+
+def apply_random_damage(image,resize=(256,256)):
+    try: image               =   Image.fromarray(image)
+    except: pass
+    
+    width, height       = image.size
+    draw                = ImageDraw.Draw(image)
+    effects = [
+        "scratch", "hole", "cut", "squeeze", "fold", "flip", "rough", "crack", "bent", "liquid",
+        "contamination", "missing_piece", "swap", "thread", "glue_stain", "oily_spot", "rough_texture"
+    ]
+    choice = random.choice(effects)
+
+    if choice == "scratch":
+        for _ in range(random.randint(1, 5)):
+            x1, y1 = random.randint(0, width), random.randint(0, height)
+            x2, y2 = random.randint(0, width), random.randint(0, height)
+            draw.line((x1, y1, x2, y2), fill="gray", width=random.randint(1, 3))
+
+    elif choice == "hole":
+        for _ in range(random.randint(1, 3)):
+            x, y = random.randint(0, width), random.randint(0, height)
+            radius = random.randint(5, 20)
+            draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill="black")
+
+    elif choice == "cut":
+        x1, y1 = random.randint(0, width), random.randint(0, height)
+        x2, y2 = random.randint(0, width), random.randint(0, height)
+        draw.line((x1, y1, x2, y2), fill="black", width=random.randint(5, 10))
+
+    elif choice == "squeeze":
+        factor = random.uniform(0.8, 1.2)
+        if random.choice([True, False]):
+            image = image.resize((int(width * factor), height))
+        else:
+            image = image.resize((width, int(height * factor)))
+
+    elif choice == "fold":
+        x, y = random.randint(0, width), random.randint(0, height)
+        fold_width = random.randint(1, 3)
+        draw.line((x, 0, x, height), fill=(128, 128, 128, 128), width=fold_width)
+
+    elif choice == "flip":
+        x, y = random.randint(0, width // 2), random.randint(0, height // 2)
+        box = (x, y, x + width // 4, y + height // 4)
+        region = image.crop(box).transpose(Image.FLIP_LEFT_RIGHT)
+        image.paste(region, box)
+
+    elif choice == "rough":
+        image = image.filter(ImageFilter.GaussianBlur(radius=random.randint(1, 3)))
+
+    elif choice == "crack":
+        for _ in range(random.randint(1, 3)):
+            points = [(random.randint(0, width), random.randint(0, height)) for _ in range(5)]
+            draw.line(points, fill="black", width=2)
+
+    elif choice == "bent":
+        bend_strength = random.uniform(0.2, 0.5)
+        image = image.transform(
+            image.size, Image.QUAD, 
+            data=(0, 0, width, 0, int(width * (1 - bend_strength)), height, int(width * bend_strength), height)
+        )
+
+    elif choice == "liquid":
+        for _ in range(random.randint(5, 10)):
+            x, y = random.randint(0, width), random.randint(0, height)
+            size = random.randint(10, 30)
+            draw.ellipse((x, y, x + size, y + size), fill=(80, 80, 80, 128))
+
+    elif choice == "contamination":
+        for _ in range(random.randint(5, 15)):
+            x, y = random.randint(0, width), random.randint(0, height)
+            size = random.randint(5, 20)
+            draw.ellipse((x, y, x + size, y + size), fill=(120, 80, 60, 100))
+
+    elif choice == "missing_piece":
+        x, y = random.randint(0, width - 40), random.randint(0, height - 40)
+        rect_width, rect_height = random.randint(20, 40), random.randint(20, 40)
+        draw.rectangle((x, y, x + rect_width, y + rect_height), fill="white")
+
+    elif choice == "swap":
+        # Define the same size for both regions to be swapped
+        box_width, box_height = width // 4, height // 4
+        x1, y1 = random.randint(0, width - box_width), random.randint(0, height - box_height)
+        x2, y2 = random.randint(0, width - box_width), random.randint(0, height - box_height)
+        
+        box1 = (x1, y1, x1 + box_width, y1 + box_height)
+        box2 = (x2, y2, x2 + box_width, y2 + box_height)
+        
+        # Crop regions to swap
+        region1 = image.crop(box1)
+        region2 = image.crop(box2)
+        
+        # Paste the swapped regions
+        image.paste(region1, box2)
+        image.paste(region2, box1)
+
+    elif choice == "thread":
+        for _ in range(random.randint(1, 5)):
+            x1, y1 = random.randint(0, width), random.randint(0, height)
+            x2, y2 = random.randint(0, width), random.randint(0, height)
+            draw.line((x1, y1, x2, y2), fill=(50, 50, 50), width=1)
+
+    elif choice == "glue_stain":
+        for _ in range(random.randint(3, 7)):
+            x, y = random.randint(0, width), random.randint(0, height)
+            size = random.randint(10, 40)
+            draw.ellipse((x, y, x + size, y + size), fill=(180, 180, 140, 120))
+
+    elif choice == "oily_spot":
+        for _ in range(random.randint(3, 8)):
+            x, y = random.randint(0, width), random.randint(0, height)
+            size = random.randint(20, 50)
+            draw.ellipse((x, y, x + size, y + size), fill=(100, 100, 100, 70))
+
+    elif choice == "rough_texture":
+        image = image.filter(ImageFilter.GaussianBlur(radius=random.randint(3, 5)))
+
+    deformed_img_np     =   cv2.resize(cv2.cvtColor(np.asarray(image),cv2.COLOR_RGB2BGR),resize)
+
+    return image,deformed_img_np

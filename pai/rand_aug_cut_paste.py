@@ -1,7 +1,9 @@
 import albumentations as A
 import numpy as np 
-import imgaug.augmenters as iaa
 import cv2
+import warnings
+
+
 def randAugmenter():
     augmentors = [
         A.ElasticTransform(alpha=250.0,always_apply=True),
@@ -62,7 +64,9 @@ def crop_irregular_shape(image, points):
 def random_point(shape):
     return np.random.choice(np.arange(shape),1)[0]
 def img_mask_extraction(n_image):
-    aug = randAugmenter()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        aug = randAugmenter()
     shape = n_image.shape[0]
     if aug(image=n_image)['image'].all()==n_image.all():
         n_image_aug     = n_image+(np.random.random(n_image.shape)*255)

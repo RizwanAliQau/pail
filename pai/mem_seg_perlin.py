@@ -4,7 +4,7 @@ import torch
 import math
 import imgaug.augmenters as iaa
 from einops import rearrange
-import collections.abc as collections
+
 
 def generate_target_foreground_mask(img, bg_threshold=10, bg_reverse= False):
         # convert RGB into GRAY scale

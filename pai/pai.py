@@ -9,12 +9,12 @@ from scipy import ndimage
 from skimage.util import random_noise
 import os
 import warnings
-import io
 from opensimplex import noise3array as noise3array_fast
 from scipy.ndimage import rotate
 from time import time
 ############################################################
-
+import sys
+sys.path.append("pai")
 ########################################################
 from perlin import *
 from mem_seg_perlin import *
@@ -51,7 +51,7 @@ class Anomaly_Insertion(object):
         and randomly paste it back into the normal image
         
         Args:
-            image (PIL.Image, mode=RGB) or numpy image: The original image
+            numpy image: The original image
             rotation: [tuple] - range for rotation
         Returns:
             numpy.ndarray: (anomalous_image,mask): The image with the anomaly inserted and segmentation mask 
@@ -96,8 +96,8 @@ class Anomaly_Insertion(object):
         Insert an anomaly into the image by generating perlin noise patterns and cropped out the pattern from anomaly soutce image to paste into normal image
         
         Args:
-            image (PIL.Image, mode=RGB) or numpy image: The original image.
-            anom_source_img (PIL.Image, mode=RGB): The anomaly source image utilize to be insert anomaly.
+            numpy image: The original image.
+            anom_source_img numpy array: The anomaly source image utilize to be insert anomaly.
         Returns:
             numpy.ndarray: (anomalous_image,mask): The image with the anomaly inserted and segmentation mask
         """
@@ -202,10 +202,10 @@ class Anomaly_Insertion(object):
         '''
         Insert an anomaly into the image by generating perlin noise patterns and cropped out the pattern from anomaly soutce image to paste into normal image using the Region of Interest either provide
         by the user or compute automatically
-         
+        
         Args:
-            image (PIL.Image, mode=RGB) or numpy image: The original image.
-            anom_source_img (PIL.Image, mode=RGB): The anomaly source image utilize to be insert anomaly.
+            numpy image: The original image.
+            anom_source_img: The anomaly source image utilize to be insert anomaly.
             use_mask (boolean) : by default (True), if false provided by user so it generated results equivalnet to 
             perlin noise patterns
         Returns:
@@ -254,17 +254,18 @@ class Anomaly_Insertion(object):
         if np.sum(mask)==0: 
             print("Not able to add anomaly into normal image:Change the anomaly source image")
         aug_img         = (((1-np.expand_dims(mask/255,axis=-1))*orig_img) + (np.expand_dims(mask,axis=-1)/255)*aug_img).astype(np.uint8)
+        if len(mask.shape)!=3:
+            mask        = np.expand_dims(mask,axis=-1)
         return aug_img, mask
     
     def rand_augmented_cut_paste(self, img_norm, anom_source_img=None, mask=None, in_fg_region=True):
         '''
         Insert an anomaly into the image by randomly augmented patterns from anomaly source image 
         to paste into normal image
-        
         Args:
-            image (PIL.Image, mode=RGB) or numpy image: The original image.
-            anom_source_img (PIL.Image, mode=RGB): The anomaly source image utilize to be insert anomaly.
-            mask (PIL or numpy image) : by default (None), if provided by user so it add anomaly inside ROI
+            numpy image: The original image.
+            anom_source_img (numpy image): The anomaly source image utilize to be insert anomaly.
+            mask (numpy image) : by default (None), if provided by user so it add anomaly inside ROI
             in_fg_region (boolean): by default (True), if false provided by user so it neglects the mask
         Returns:
             numpy.ndarray: (anomalous_image,mask): The image with the anomaly inserted and segmentation mask. 
@@ -453,7 +454,7 @@ class Anomaly_Insertion(object):
         Generate simplex noise patterns and paste at random positions into normal image
         
         Args:
-            image (PIL.Image, mode=RGB) or numpy image: The original image.
+            numpy image: The original image.
         Returns:
             numpy.ndarray: (anomalous_image,mask): The image with the anomaly inserted and segmentation mask. 
         '''
@@ -499,7 +500,7 @@ class Anomaly_Insertion(object):
         Generate Gaussian noise patterns and randomly paste them onto a normal image
         
         Args:
-            image (PIL.Image, mode=RGB) or numpy image: The original image.
+            numpy image: The original image.
         Returns:
             numpy.ndarray: (anomalous_image,mask): The image with the anomaly inserted and segmentation mask. 
         '''
@@ -568,7 +569,7 @@ class Anomaly_Insertion(object):
             initial_x = np.random.choice(np.arange(image.shape[0]-threshold),1)[0]
             final_x   = np.random.choice(np.arange(threshold,int(image.shape[0]*0.1)),1)[0]
             if final_x==0 or ((final_x+initial_x)==image.shape[0]):
-                final_x = np.ceil(4*0.02)
+                final_x = int(np.ceil(4*0.02))
             patch_mask[initial_x:initial_x+final_x, initial_x:initial_x+final_x,:] = 1
             augmented_image                 = ((augmented_image*(1-patch_mask)) + ((patch_mask*noise_image)*255)).astype(np.uint8)
             patch_mask                      = (patch_mask*255).astype(np.uint8)
@@ -576,6 +577,8 @@ class Anomaly_Insertion(object):
             if np.sum(patch_mask)==0:
                 print("Anomaly Generation Fails: Kindly Rerun this method")
         augmented_image, patch_mask         = cv2.resize(augmented_image,(orig_h,orig_w)), cv2.resize(patch_mask,(orig_h,orig_w)) 
+        if len(np.shape(patch_mask))!=3:
+            patch_mask      =   np.expand_dims(patch_mask,axis=-1)
         return augmented_image, patch_mask
     
     def hard_aug_cutpaste(self, image):
@@ -584,7 +587,7 @@ class Anomaly_Insertion(object):
         as anomaly source image to paste into normal image
         
         Args:
-            image (PIL.Image, mode=RGB) or numpy image: The original image.
+            numpy image: The original image.
         Returns:
             numpy.ndarray: (anomalous_image,mask): The image with the anomaly inserted and segmentation mask. 
         '''
@@ -615,13 +618,11 @@ class Anomaly_Insertion(object):
         Insert an anomaly into the image by generating and pasting fractal patterns
         
         Args:
-            image (PIL.Image, mode=RGB) or numpy array: The original image
+            numpy image: The original image.
         Returns:
             numpy.ndarray: (anomalous_image,mask): The image with the anomaly inserted and segmentation mask 
         '''
-        orig_w, orig_h          = image.size
         image                   = Image.fromarray(np.asarray(image)) 
-        buf                     = io.BytesIO()
         transformations         = [transformation1, transformation2, transformation3, transformation4]
         #probabilities           = [0.85, 0.07, 0.07, 0.01] 
         mask_img                    = np.zeros_like(image)
@@ -662,7 +663,7 @@ class Anomaly_Insertion(object):
         '''
         CutPaste augmentation
         Args:
-            image: [PIL] - original image
+            numpy image: The original image.
             area_ratio: [tuple] - range for area ratio for patch
             aspect_ratio: [tuple] -  range for aspect ratio
 
@@ -670,6 +671,7 @@ class Anomaly_Insertion(object):
             numpy.ndarray: (anomalous_image,mask): The image with the anomaly inserted and segmentation mask. 
         '''
         mask                =  np.zeros_like(np.asarray(image))
+        image               =  Image.fromarray(image)
         count               =   0
         while np.sum(mask)==0 and count<=5:
             image_np            =  np.asarray(image)
@@ -698,26 +700,35 @@ class Anomaly_Insertion(object):
         if np.sum(mask)==0: 
             print("Anomaly Generation Fails: Kindly Rerun this method")
         return aug_img, mask
-    
-    def affined_anomlay(self,image, resize=(256,256),anom_source_img=None):
+        
+    def affined_anomlay(self,image, resize=None, anom_source_img=None):
         '''
         Insert an anomaly into the image by converting into patches and adding
         affine transform on normal patches to get the anomaly image patches
         Args:
-            image (PIL.Image, mode=RGB) or numpy array: The original image.
+            numpy image: The original image.
+            anom_source_img (optional: use in AAS): The anomaly source image utilize to be insert anomaly.
+            
         Returns:
             numpy.ndarray: (anomalous_image,mask): The image with the anomaly inserted and segmentation mask. 
         '''
+        image_copy  =   np.copy(image)
         if resize is None:
-            resize  =   (image.size[0],image.size[1])    
+            try: resize  =   (image.size[0],image.size[1])   
+            except:  resize  =   (image.shape[0],image.shape[1])   
         
-        choice_of_patch_size                        =   np.random.choice([16,32,64],1)[0] 
+        choice_of_patch_size                    =    np.random.choice([8,16,32,64],1)[0] 
         
         resize_req                              =   True
-        orig_h, orig_w                          =   image.size
-        resize                                  =   (256,256) 
-        image                                   =   Image.fromarray(cv2.resize(np.asarray(image),(256,256)))
+        try: orig_h, orig_w                     =   image.size
+        except: orig_h, orig_w,_                =   image.shape
+        
+        image                                   =   Image.fromarray(cv2.resize(np.asarray(image),resize))
         patches_orig, normal_img_patches        =   patches_extrac_patches_to_img(image, patch_size=choice_of_patch_size)
+        #image_roi           =   self.roi_extraction(image, choice_of_patch_size, roi_extraction=False)
+
+        #self.patches_extrac_patches_to_img(image)    
+        # _, anom_source_img_patches  =   self.patches_extraction(anomaly_img_augmented)
         mask                                   =   np.zeros_like(normal_img_patches) ### mask color -- 1
         
         patch           = np.zeros((patches_orig.shape[-2],patches_orig.shape[-3],3)) 
@@ -729,10 +740,20 @@ class Anomaly_Insertion(object):
             #normal_patch_roi        =   image_roi[i, :,:,:]
             msk                     =   mask[patch_indx, :,:,:].astype(np.float32)
             normal_patch            =   (normal_img_patches[patch_indx, :,:,:]) # /255) #.astype(np.float32)
-            msk                     =   mask[patch_indx, :,:,:].astype(np.float32)            
+            msk                     =   mask[patch_indx, :,:,:].astype(np.float32)
+
+
+            #if (np.sum(normal_patch)!=0): # and ((np.var(normal_patch)*100)>0):
+                #anomaly_type = 0 
+                ############ extract anomlay source patterns 
+            
             choice_for_anomly   =   np.random.choice([0,1],1)[0] # (2,2) # self.anomaly_type
             
-            if choice_for_anomly==0: # and (np.var(normal_patch)>0.001): 
+            
+
+            if choice_for_anomly==0: # and (np.var(normal_patch)>0.1): 
+                #mse_norm_anom      =    self.ssim_(torch.tensor(anom_source_patch_c), torch.tensor(normal_patch)).item() # var_ration 
+                #ssim_value         =   ssim_com(torch.transpose(torch.tensor(np.expand_dims(anom_source_patch_c, axis=0)), 1,3), torch.transpose(torch.tensor(np.expand_dims(normal_patch, axis=0)), 1,3))
                 augmented_image, msk    =   affine_transform_anomaly(normal_patch, normal_img_patches,choice_of_aug=False) # , anom_source_patch_c)
             else:
                 augmented_image, msk    =   normal_patch, np.zeros_like(normal_patch)
@@ -741,9 +762,12 @@ class Anomaly_Insertion(object):
             col_index	            =	patch_indx%patches_orig.shape[1]
             patch[:,:,:]	        =	normal_img_patches[patch_indx, :, :,:]
             msk_patch[:,:,:]        =   mask[patch_indx, :, :,:]
-
+            if ssim(augmented_image, (msk*normal_patch),channel_axis=2,data_range=255)>=0.75:
+                augmented_image, msk    =   normal_patch, np.zeros_like(normal_patch)
             patches_orig[row_index, col_index, 0,:,:,:]	    =	augmented_image
             mask_patches[row_index, col_index, 0,:,:,:]	    =	msk
+            
+                
 
                    
         aug_img 			        =   unpatchify(patches_orig, (resize[0],resize[1],3))   
@@ -751,8 +775,20 @@ class Anomaly_Insertion(object):
         if resize_req:
             aug_img                 =   cv2.resize(aug_img,(orig_h, orig_w))
             aug_img_mask            =   cv2.resize(aug_img_mask,(orig_h, orig_w))
+        
+        
         if anom_source_img is not None:
-            aug_img                 =   ((aug_img_mask>0)*anom_source_img)+((1-(aug_img_mask>0))*aug_img)
+            apply_opacity_           =   np.random.choice([0,1],1)[0]
+            if apply_opacity_:
+                for r in range(5):
+                    image,anom_source_img         =   apply_random_damage(anom_source_img)
+            aug_img                  =   (aug_img*(1-aug_img_mask[:,:,:1]>0)).astype(np.uint8) + (anom_source_img*(aug_img_mask[:,:,:1]>0))
+        else:
+            change_color_            =   np.random.choice([0,1],1)[0]
+            if change_color_:
+                aug_img             =   change_color(aug_img, aug_img_mask[:,:,:1]*255)
+        aug_img_mask     =   ((image_copy-aug_img)>0)*(aug_img_mask)
+        aug_img          =   (aug_img_mask*aug_img) + ((1-aug_img_mask)*image_copy)
         return aug_img, aug_img_mask[:,:,:1]*255
 
     def affine_anom_color_change(self,image,resize=(256,256)):
