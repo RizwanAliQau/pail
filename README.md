@@ -26,6 +26,7 @@ This framework provides a robust solution for anomaly detection and segmentation
     docker build -t pail_test .
     docker run -it -d pail_test
 ```
+Attach VS code to docker container to run the anomaly generation
 ## create conda environment
 ```
     conda create -n pai_lib --file requirement.txt
@@ -48,10 +49,9 @@ This framework provides a robust solution for anomaly detection and segmentation
         anom_source_index   =  np.random.choice(len(anom_source_files),1)[0]
         anom_source_img     =  cv2.imread(anom_source_files[anom_source_index])
         anom_source_img     =  cv2.resize(anom_source_img, (width, width))
-        anom_source_img_pil =  Image.fromarray(anom_source_img)
     except:
         print("Anomaly Source Image data does not Exist so initialize with ones image") 
-        anom_source_img_    =  Image.fromarray(np.ones((256,256,3),dtype=np.uint8))
+        anom_source_img     =  np.ones((256,256,3),dtype=np.uint8)
     try:
         normal_image        =  cv2.imread(normal_img_path) # f'data/mvtech/{class_name}/train/good/000.png')
         normal_image        =  cv2.resize(normal_image, (width, width))
@@ -99,36 +99,41 @@ This framework provides a robust solution for anomaly detection and segmentation
 ### DRÆM – A discriminatively trained reconstruction embedding for surface anomaly detection 
 ### https://arxiv.org/pdf/2108.07610.pdf
 ```ruby
-    aug_img,msk    =    anom_insertion.perlin_noise_pattern(normal_image, anom_source_img=anom_source_img_pil)
+    aug_img,msk    =    anom_insertion.perlin_noise_pattern(normal_image, anom_source_img=anom_source_img)
 ```
 ### - Superpixel Anomaly Example 
 ### Two-Stage Coarse-to-Fine Image Anomaly Segmentation and Detection Model 
 ### https://www.sciencedirect.com/science/article/abs/pii/S0262885623001919
 ```ruby
-    aug_img,msk    =    anom_insertion.superpixel_anomaly(normal_image, anom_source_img=anom_source_img_pil)
+    aug_img,msk    =    anom_insertion.superpixel_anomaly(normal_image, anom_source_img=anom_source_img)
 ```
 ### - Perlin ROI Anomaly Example 
 ### MemSeg: A semi-supervised method for image surface defect detection using differences and commonalities 
 ### https://arxiv.org/pdf/2205.00908.pdf 
 ```ruby
-    aug_img,msk    =    anom_insertion.perlin_with_roi_anomaly(normal_image,anom_source_img=anom_source_img_pil)
+    aug_img,msk    =    anom_insertion.perlin_with_roi_anomaly(normal_image,anom_source_img=anom_source_img)
 ```    
 ### - Random Augmented CutPaste Anomaly Example 
 ### Explicit Boundary Guided Semi-Push-Pull Contrastive Learning for Supervised Anomaly Detection
 ### https://arxiv.org/pdf/2207.01463.pdf 
 ```ruby
-    aug_img,msk    =    anom_insertion.rand_augmented_cut_paste(normal_image,  anom_source_img=anom_source_img_pil)
+    aug_img,msk    =    anom_insertion.rand_augmented_cut_paste(normal_image,  anom_source_img=anom_source_img)
 ```
 ### - Fractal Anomaly Generation (FAG) Example
 ### FRACTALAD: A SIMPLE INDUSTRIAL ANOMALY DETECTION METHOD USING FRACTAL ANOMALY GENERATION AND BACKBONE KNOWLEDGE DISTILLATION 
 ### https://arxiv.org/pdf/2301.12739.pdf 
 ```ruby
-    aug_img,msk    =    anom_insertion.fract_aug(normal_image, anom_source_img=anom_source_img_pil)
+    aug_img,msk    =    anom_insertion.fract_aug(normal_image, anom_source_img=anom_source_img)
 ```
 ## Hybrid: SFI And SBI 
 ### - Affined Anomalay 
+- AA and AAC (affined anomaly with color)
 ```sql
     aug_anom,msk   =    anom_insertion.affined_anomlay(normal_image)
+```
+- AAS (affined anomaly with anomaly source)
+```sql
+    aug_anom,msk   =    anom_insertion.affined_anomlay(normal_image,anom_source_img=anom_source_img)
 ```
 ---
 # PAI (Pseudo-Anomaly Examples) 
