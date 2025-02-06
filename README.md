@@ -36,7 +36,7 @@ Attach VS code to docker container to run the anomaly generation
 # Usage
 ## Import library and read normal and anomaly source images
 ```python
-    from pail import pai
+    from pai import pai
     anom_inserton_time      =  {}
     normal_img_path         =  'example_img/example_0.jpg' #,
     anom_sourc_path         =  'anom_source_imgs'
