@@ -21,13 +21,15 @@ This framework provides a robust solution for anomaly detection and segmentation
 
 ---
 # Installation
-## Docker Env
+> Use either Docker or Conda Environment
+## Create Docker Environment
 ```
     docker build -t pail_test .
     docker run -it -d pail_test
 ```
-Attach VS code to docker container to run the anomaly generation
-## create conda environment
+##### *Attach docker container to VS code to run the anomaly Generation*
+---
+## Create Conda Environment
 ```
     conda create -n pai_lib --file requirement.txt
     conda activate pai_lib
@@ -37,31 +39,35 @@ Attach VS code to docker container to run the anomaly generation
 ## Import library and read normal and anomaly source images
 ```python
     from pai import pai
-    anom_inserton_time      =  {}
+    import numpy as np
+    import os
+    import cv2
     normal_img_path         =  'example_img/example_0.jpg' #,
     anom_sourc_path         =  'anom_source_imgs'
-    class_name              =  'data'
     try: anom_source_files  =  [os.path.join(anom_sourc_path,file) for file in  os.listdir(anom_sourc_path)]
     except Exception as e: print("Anom Source Data does not Exist")
+    height,width            =  256,256
     ##############################################################################
-    hight,width             =  256,256
     try:
         anom_source_index   =  np.random.choice(len(anom_source_files),1)[0]
         anom_source_img     =  cv2.imread(anom_source_files[anom_source_index])
         anom_source_img     =  cv2.resize(anom_source_img, (width, width))
     except:
+        # create one dummy image for anomaly source
         print("Anomaly Source Image data does not Exist so initialize with ones image") 
-        anom_source_img     =  np.ones((256,256,3),dtype=np.uint8)
+        anom_source_img     =  np.zeros((height,width,3),dtype=np.uint8)
     try:
-        normal_image        =  cv2.imread(normal_img_path) # f'data/mvtech/{class_name}/train/good/000.png')
+        normal_image        =  cv2.imread(normal_img_path) 
         normal_image        =  cv2.resize(normal_image, (width, width))
-    except Exception as e: 
+    except Exception as e:
+        # create one dummy image for anomaly insertion 
         print("Normal Image data does not Exist so initialize with zeros image")
-        normal_image        =  np.ones((256,256,3),dtype=np.uint8)
-
+        normal_image        =  np.ones((width,width,3),dtype=np.uint8)*255
+    ##############################################################################
     anom_insertion  =    pai.Anomaly_Insertion() 
 ``` 
 ##  **Source Free Methods (SFI)** 
+
 ### - Cut-Paste scar Example 
 ### CutPaste: Self-Supervised Learning for Anomaly Detection and Localization
 ### https://arxiv.org/pdf/2104.04015.pdf
@@ -92,6 +98,8 @@ Attach VS code to docker container to run the anomaly generation
 ```python    
     aug_img,msk    =    anom_insertion.cutpaste(normal_image)
 ```
+
+---
 
 ## **Source based Methods (SBI)** 
 
@@ -125,6 +133,7 @@ Attach VS code to docker container to run the anomaly generation
 ```ruby
     aug_img,msk    =    anom_insertion.fract_aug(normal_image, anom_source_img=anom_source_img)
 ```
+---
 ## Hybrid: SFI And SBI 
 ### - Affined Anomalay 
 - AA and AAC (affined anomaly with color)
@@ -136,5 +145,6 @@ Attach VS code to docker container to run the anomaly generation
     aug_anom,msk   =    anom_insertion.affined_anomlay(normal_image,anom_source_img=anom_source_img)
 ```
 ---
-# PAI (Pseudo-Anomaly Examples) 
+
+# PAI (Pseudo-Anomaly Insertion Examples) 
 ![examples_pai](https://github.com/user-attachments/assets/57257328-65af-4d42-a173-eab9f3be277b)
