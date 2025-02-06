@@ -1,4 +1,4 @@
-<img src="misc/logo.jpg" alt="Logo" style="width:22px;height:22px;"> <span style="font-size:24px;"><strong>Pseudo-Anomaly Insertion Library (PAI-Lib)</strong></span>
+<img src="misc/logo.jpg" alt="Logo" style="width:100px;height:100px;"> <span style="font-size:100px;">**Pseudo-Anomaly Insertion Library (PAI-Lib)**</span>
 
 ## Overview:  
 > This project aims to enhance self-supervised anomaly detection by integrating synthetic anomaly generation techniques to improve both detection and segmentation performance in industrial environments. The framework introduces various anomaly insertion methods, categorized into source-free and source-based approaches, to address different manufacturing defect detection challenges.
