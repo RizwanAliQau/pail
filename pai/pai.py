@@ -12,20 +12,17 @@ import warnings
 from opensimplex import noise3array as noise3array_fast
 from scipy.ndimage import rotate
 from time import time
-############################################################
-import sys
-sys.path.append("pai")
 ########################################################
-from perlin import *
-from mem_seg_perlin import *
-from rand_aug_cut_paste import *
-from simplex_noise import *
-from random_pert import *
-from hard_augment_cutpaste import * 
-from fractal_aug import *
-from cutpaste import *
-from augmented_anomlay import *
-from change_color import *
+from .perlin import *
+from .mem_seg_perlin import *
+from .rand_aug_cut_paste import *
+from .simplex_noise import *
+from .random_pert import *
+from .hard_augment_cutpaste import * 
+from .fractal_aug import *
+from .cutpaste import *
+from .augmented_anomlay import *
+from .change_color import *
 ########################################################
 class Anomaly_Insertion(object):
 
